@@ -3,8 +3,7 @@
 const passportState = {
   candidates: [], // Array of { id, name, croppedCanvas, aiCutoutImage: null, processedDataUrl, photoCount: 6 }
   pendingFile: null,
-  cropperInstance: null,
-  removeBgApiKey: localStorage.getItem('REMOVE_BG_API_KEY') || ''
+  cropperInstance: null
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -144,37 +143,32 @@ function openPassportCropperModal() {
 async function performAiRemoveBgForCand(cand) {
   if (!cand || !cand.croppedCanvas) return;
 
-  let apiKey = passportState.removeBgApiKey || localStorage.getItem('REMOVE_BG_API_KEY');
-  if (!apiKey) {
-    const userKey = prompt('Enter your Remove.bg API key to enable AI background removal (stored locally in browser):');
-    if (userKey && userKey.trim()) {
-      apiKey = userKey.trim();
-      passportState.removeBgApiKey = apiKey;
-      localStorage.setItem('REMOVE_BG_API_KEY', apiKey);
-    } else {
-      showToast('AI background removal requires a Remove.bg API key', 'warning');
-      applyPhotoAdjustmentsAll();
-      return;
-    }
-  }
-
   try {
-    const base64Data = cand.croppedCanvas.toDataURL('image/png').split(',')[1];
-    const formData = new FormData();
-    formData.append('image_file_b64', base64Data);
-    formData.append('size', 'auto');
+    showToast(`Removing background for ${cand.name}...`, 'info');
 
-    const response = await fetch('https://api.remove.bg/v1.0/removebg', {
+    const base64Data = cand.croppedCanvas.toDataURL('image/png').split(',')[1];
+    const response = await fetch('/api/removebg', {
       method: 'POST',
       headers: {
-        'X-Api-Key': apiKey
+        'Content-Type': 'application/json'
       },
-      body: formData
+      body: JSON.stringify({
+        image_file_b64: base64Data,
+        size: 'auto'
+      })
     });
 
     if (!response.ok) {
-      const errJson = await response.json().catch(() => ({}));
-      throw new Error(errJson.errors ? errJson.errors[0].title : `HTTP ${response.status}`);
+      let errMsg = `Error (HTTP ${response.status})`;
+      try {
+        const errJson = await response.json();
+        if (errJson.error) {
+          errMsg = errJson.error;
+        } else if (errJson.errors && errJson.errors[0]) {
+          errMsg = errJson.errors[0].title || errMsg;
+        }
+      } catch (e) {}
+      throw new Error(errMsg);
     }
 
     const blob = await response.blob();
@@ -185,8 +179,9 @@ async function performAiRemoveBgForCand(cand) {
     });
 
     const aiImg = new Image();
-    await new Promise((resolve) => {
+    await new Promise((resolve, reject) => {
       aiImg.onload = resolve;
+      aiImg.onerror = reject;
       aiImg.src = transparentDataUrl;
     });
 
@@ -194,8 +189,8 @@ async function performAiRemoveBgForCand(cand) {
     showToast(`Full background replaced for ${cand.name}!`, 'success');
 
   } catch (err) {
-    console.error(err);
-    showToast(`AI BG Removal note: Using Canvas color replacement (${err.message})`, 'warning');
+    console.error('AI BG Removal error:', err);
+    showToast(`AI BG Removal note: ${err.message}`, 'warning');
   }
 
   applyPhotoAdjustmentsAll();

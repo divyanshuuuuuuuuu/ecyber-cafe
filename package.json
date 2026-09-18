@@ -1,0 +1,17 @@
+{
+  "name": "ecyber-cafe",
+  "version": "1.0.0",
+  "description": "eCyber Cafe Automation Suite - Instant Aadhaar, Passport Photo & Form Sizing",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "ecyber-cafe",
+    "passport-photo",
+    "aadhaar",
+    "voter-id",
+    "image-resizer"
+  ],
+  "license": "MIT"
+}

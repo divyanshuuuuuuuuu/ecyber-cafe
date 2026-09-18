@@ -1,8 +1,9 @@
 # Environment and secret files
 .env
-.env.*
+.env.local
+.env.*.local
 *.env
-*.local
+!.env.example
 
 # Operating System Files
 .DS_Store

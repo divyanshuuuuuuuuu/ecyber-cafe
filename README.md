@@ -26,16 +26,39 @@ An all-in-one web-based automation toolkit designed for cyber cafes and digital 
 
 ---
 
-## 🚀 Live Demo & Hosting
+## 🚀 Live Demo, Local Setup & Hosting
 
-You can run this application locally or host it for online access:
-
-### Local Access
-Open `index.html` in any modern web browser or start a local HTTP server:
+### 1. Configure Environment Variables
+Copy `.env.example` to `.env` and enter your Remove.bg API key:
 ```bash
-python -m http.server 8000
+cp .env.example .env
+```
+In `.env`:
+```env
+REMOVE_BG_API_KEY=your_actual_remove_bg_api_key_here
+PORT=8000
+```
+> **Security Note:** `.env` is gitignored and will never be committed to GitHub. Your API key remains secure on the server side.
+
+### 2. Local Access
+Run using Python (standard library, zero dependencies):
+```bash
+python server.py 8000
+```
+Or run using Node.js:
+```bash
+npm start
+# or: node server.js 8000
 ```
 Then visit `http://localhost:8000`.
+
+### 3. Serverless Deployment (Vercel / Netlify)
+This repository is configured for zero-config serverless deployment:
+1. Push this repository to GitHub.
+2. Import the repository on [Vercel](https://vercel.com).
+3. In Project Settings > **Environment Variables**, add:
+   - `REMOVE_BG_API_KEY`: Your Remove.bg API Key
+4. Deploy! The `/api/removebg` serverless route will securely handle background removal requests.
 
 ---
 
@@ -46,6 +69,13 @@ ecyber cafe/
 ├── index.html         # Main dashboard and user interface
 ├── styles.css         # Modern responsive CSS design system
 ├── README.md          # Project documentation
+├── .env.example       # Example environment variable template
+├── vercel.json        # Vercel serverless deployment routing
+├── package.json       # Project configuration and scripts
+├── server.py          # Python dev server with /api/removebg proxy (zero dependencies)
+├── server.js          # Node dev server with /api/removebg proxy (zero dependencies)
+├── api/
+│   └── removebg.js    # Vercel / Node serverless function for Remove.bg
 └── js/
     ├── aadhaar.js     # Aadhaar card processing logic
     ├── voter.js       # Voter ID processing logic
