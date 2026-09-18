@@ -101,9 +101,9 @@ function triggerPrint() {
   const passportPreset = document.getElementById('passport-paper-preset');
 
   if (activeTab && activeTab.id === 'tab-passport' && passportPreset && passportPreset.value === '4x6') {
-    printStyle.textContent = '@page { size: 101.6mm 152.4mm portrait; margin: 0mm; }';
+    printStyle.textContent = '@page { size: 152.4mm 101.6mm; margin: 0; }';
   } else {
-    printStyle.textContent = '@page { size: A4 portrait; margin: 0mm; }';
+    printStyle.textContent = '@page { size: A4; margin: 0; }';
   }
 
   window.print();

@@ -357,6 +357,7 @@ body {
 }
 
 /* Paper Canvas Rendering (A4 & 4x6 Aspect Ratios) */
+/* Paper Canvas Rendering (A4 & 4x6 Aspect Ratios) */
 .paper-sheet {
   background: #ffffff;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
@@ -367,22 +368,24 @@ body {
   box-sizing: border-box;
 }
 
-/* A4 Sheet Dimensions in px (210mm x 297mm) */
+/* A4 Sheet Dimensions - Strict Standard 210mm x 297mm */
 .paper-a4 {
-  width: 794px;  /* 210mm */
-  height: 1123px; /* 297mm */
-  padding: 15px 18px; /* Minimal side margins to prevent paper waste */
+  width: 210mm;
+  min-height: 297mm;
+  padding: 3mm 3.5mm;
+  box-sizing: border-box;
 }
 
-/* 4x6 Inch Photo Paper */
+/* 4x6 Inch Photo Paper - Standard 152.4mm x 101.6mm */
 .paper-4x6 {
-  width: 576px; /* 4 inches at 144 DPI preview */
-  height: 864px; /* 6 inches */
-  padding: 12px 14px;
+  width: 152.4mm;
+  height: 101.6mm;
+  padding: 3mm 3mm;
+  box-sizing: border-box;
 }
 
 #passport-paper-preview {
-  padding-top: 10px !important;
+  padding: 3mm 3.5mm !important;
 }
 
 .paper-grid {
@@ -416,13 +419,13 @@ body {
 
 /* Passport Photo item in paper grid */
 .passport-photo-item {
-  width: 132px; /* ~35mm */
-  height: 170px; /* ~45mm */
-  border: 1px solid #e2e8f0;
   box-sizing: border-box;
   background: #fff;
   position: relative;
   overflow: hidden;
+  display: inline-block;
+  flex-shrink: 0;
+  border: 1px solid #e2e8f0;
 }
 
 .passport-photo-item.cut-guides::after {
@@ -437,6 +440,28 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+}
+
+/* Printer Margin Warning / Info Badge */
+.print-info-badge {
+  font-size: 0.74rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 6px;
+  margin-top: 0.4rem;
+  line-height: 1.35;
+}
+
+.print-info-badge.warning {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
+.print-info-badge.info {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
 }
 
 /* Modals & Dialogs */
@@ -583,11 +608,15 @@ body {
 
 /* Print CSS Settings - Strict A4 Portrait (210mm x 297mm) Paper Printing */
 @page {
-  size: A4 portrait;
-  margin: 0mm;
+  size: A4;
+  margin: 0;
 }
 
 @media print {
+  *, *::before, *::after {
+    box-sizing: border-box !important;
+  }
+
   html, body {
     width: 210mm !important;
     height: 297mm !important;
@@ -597,7 +626,10 @@ body {
     padding: 0 !important;
     background: #ffffff !important;
     color: #000000 !important;
-    overflow: hidden !important;
+    position: static !important;
+    top: 0 !important;
+    left: 0 !important;
+    overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -606,45 +638,75 @@ body {
     visibility: hidden;
   }
   
+  /* 100% remove all UI elements and spaces from document flow */
+  header,
+  footer,
+  aside,
+  nav,
   .app-header, 
   .control-panel, 
   .preview-toolbar, 
   .toast-container, 
   .modal-overlay,
   .privacy-badge,
-  .nav-tabs {
+  .nav-tabs,
+  .print-info-badge,
+  #crop-modal,
+  #pdf-password-modal,
+  #custom-preset-modal {
     display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    position: absolute !important;
+    top: -9999px !important;
+    left: -9999px !important;
   }
   
   .app-container {
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 210mm !important;
-    height: 297mm !important;
-    max-width: none !important;
     display: block !important;
+    position: static !important;
+    top: 0 !important;
+    left: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 210mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    transform: none !important;
   }
 
   .workspace-grid {
     display: block !important;
-    width: 210mm !important;
-    height: 297mm !important;
+    position: static !important;
+    top: 0 !important;
+    left: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 210mm !important;
+    height: auto !important;
+    min-height: 0 !important;
     grid-template-columns: none !important;
     gap: 0 !important;
-    min-height: auto !important;
+    transform: none !important;
   }
   
   .preview-stage {
     display: block !important;
-    background: transparent !important;
-    border: none !important;
-    padding: 0 !important;
+    position: static !important;
+    top: 0 !important;
+    left: 0 !important;
     margin: 0 !important;
+    padding: 0 !important;
     width: 210mm !important;
-    height: 297mm !important;
-    min-height: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    border: none !important;
+    background: transparent !important;
     overflow: visible !important;
     box-shadow: none !important;
     transform: none !important;
@@ -654,12 +716,23 @@ body {
     display: none !important;
     margin: 0 !important;
     padding: 0 !important;
+    position: static !important;
+    top: 0 !important;
+    left: 0 !important;
+    animation: none !important;
+    transform: none !important;
   }
 
   .tab-content.active {
     display: block !important;
+    position: static !important;
+    top: 0 !important;
+    left: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
     width: 210mm !important;
-    height: 297mm !important;
+    height: auto !important;
+    transform: none !important;
   }
 
   .paper-sheet, 
@@ -668,9 +741,10 @@ body {
   }
 
   .paper-sheet {
-    position: absolute !important;
-    left: 0 !important;
+    display: block !important;
+    position: static !important;
     top: 0 !important;
+    left: 0 !important;
     margin: 0 !important;
     box-shadow: none !important;
     transform: none !important;
@@ -692,7 +766,7 @@ body {
     min-height: 297mm !important;
     max-width: 210mm !important;
     max-height: 297mm !important;
-    padding: 8mm 10mm !important;
+    padding: 4mm 3.5mm !important;
     box-sizing: border-box !important;
     margin: 0 !important;
     background: #ffffff !important;
@@ -700,19 +774,28 @@ body {
 
   .paper-4x6,
   #passport-paper-preview.paper-4x6 {
-    width: 101.6mm !important;
-    height: 152.4mm !important;
-    min-width: 101.6mm !important;
-    min-height: 152.4mm !important;
-    padding: 4mm 5mm !important;
+    width: 152.4mm !important;
+    height: 101.6mm !important;
+    min-width: 152.4mm !important;
+    min-height: 101.6mm !important;
+    max-width: 152.4mm !important;
+    max-height: 101.6mm !important;
+    padding: 3mm 3mm !important;
     box-sizing: border-box !important;
     margin: 0 !important;
     background: #ffffff !important;
   }
 
   .paper-grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-content: flex-start !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
     width: 100% !important;
-    box-sizing: border-box !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .passport-photo-item {
@@ -749,9 +832,8 @@ body {
   }
 
   #receipt-preview-box {
-    position: absolute !important;
-    left: 10mm !important;
-    top: 10mm !important;
+    position: static !important;
+    margin: 4mm auto !important;
     box-shadow: none !important;
     border: 1px dashed #000000 !important;
   }

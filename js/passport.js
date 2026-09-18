@@ -148,7 +148,10 @@ function openPassportCropperModal() {
         height: 531
       });
 
-      const perRow = parseInt(document.getElementById('passport-photos-per-row').value, 10) || 6;
+      const perRowSelectVal = document.getElementById('passport-photos-per-row').value;
+      let initialCount = 5;
+      if (perRowSelectVal === '4') initialCount = 4;
+      else if (perRowSelectVal === '6-compact' || perRowSelectVal === '6-borderless' || perRowSelectVal === '6') initialCount = 6;
 
       const newCand = {
         id: passportState.pendingFile.id,
@@ -156,7 +159,7 @@ function openPassportCropperModal() {
         croppedCanvas: croppedCanvas,
         aiCutoutImage: null,
         processedDataUrl: null,
-        photoCount: perRow
+        photoCount: initialCount
       };
 
       // 1. Immediately close modal and destroy cropper so it NEVER gets stuck
@@ -429,30 +432,32 @@ function renderPassportSheet() {
   paperPreview.className = paperPreset === '4x6' ? 'paper-sheet paper-4x6' : 'paper-sheet paper-a4';
   photoGrid.innerHTML = '';
 
-  const usableWidth = paperPreset === '4x6' ? 548 : 758;
-  const gap = 4; // Tight gap between photos
-  const itemWidth = Math.floor((usableWidth - (photosPerRow - 1) * gap) / photosPerRow);
-  const itemHeight = Math.floor(itemWidth * (4.5 / 3.5));
+  const gapMm = paperPreset === '4x6' ? 1.5 : (photosPerRow === 6 ? 1.0 : (photosPerRow === 5 ? 2.0 : 4.0));
+  const numPerRow = paperPreset === '4x6' ? 4 : photosPerRow;
 
   passportState.candidates.forEach(cand => {
     const candBlock = document.createElement('div');
     candBlock.style.width = '100%';
-    candBlock.style.marginBottom = '4px';
+    candBlock.style.marginBottom = '2mm';
 
     const rowContainer = document.createElement('div');
     rowContainer.style.display = 'flex';
     rowContainer.style.flexWrap = 'wrap';
-    rowContainer.style.gap = `${gap}px`;
+    rowContainer.style.gap = `${gapMm}mm`;
+    rowContainer.style.rowGap = '2mm';
     rowContainer.style.width = '100%';
 
     for (let i = 0; i < cand.photoCount; i++) {
       const photoItem = document.createElement('div');
       photoItem.className = `passport-photo-item ${cutGuideClass}`;
-
-      // Percentage width calculation guarantees 6 photos fit in Row 1 cleanly!
-      photoItem.style.width = `calc((100% - ${(photosPerRow - 1) * gap}px) / ${photosPerRow})`;
+      
+      // Exact percentage width ensures all 6 photos fit on 1 single row with 0 wrapping!
+      photoItem.style.width = `calc((100% - ${(numPerRow - 1) * gapMm}mm) / ${numPerRow})`;
       photoItem.style.aspectRatio = '3.5 / 4.5';
       photoItem.style.height = 'auto';
+      photoItem.style.minWidth = '0';
+      photoItem.style.maxWidth = 'none';
+      photoItem.style.flexShrink = '0';
 
       photoItem.innerHTML = `<img src="${cand.processedDataUrl}" alt="${cand.name}">`;
       rowContainer.appendChild(photoItem);
