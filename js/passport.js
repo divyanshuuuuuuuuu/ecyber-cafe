@@ -90,20 +90,38 @@ async function handlePassportFileUpload(e) {
   openPassportCropperModal();
 }
 
+function closePassportCropperModal() {
+  const modal = document.getElementById('crop-modal');
+  if (modal) modal.classList.remove('active');
+
+  if (passportState.cropperInstance) {
+    passportState.cropperInstance.destroy();
+    passportState.cropperInstance = null;
+  }
+  passportState.pendingFile = null;
+}
+
 function openPassportCropperModal() {
   if (!passportState.pendingFile) return;
 
   const modalImg = document.getElementById('crop-modal-img');
   const title = document.getElementById('crop-modal-title');
-  title.innerText = `Crop Photo - ${passportState.pendingFile.name}`;
-  modalImg.src = passportState.pendingFile.rawDataUrl;
-
   const modal = document.getElementById('crop-modal');
-  modal.classList.add('active');
+  const saveBtn = document.getElementById('btn-save-crop');
+  const cancelBtn = document.getElementById('btn-cancel-crop');
 
-  if (passportState.cropperInstance) passportState.cropperInstance.destroy();
+  if (title) title.innerText = `Crop Photo - ${passportState.pendingFile.name}`;
+  if (modalImg) modalImg.src = passportState.pendingFile.rawDataUrl;
+
+  if (modal) modal.classList.add('active');
+
+  if (passportState.cropperInstance) {
+    passportState.cropperInstance.destroy();
+    passportState.cropperInstance = null;
+  }
 
   setTimeout(() => {
+    if (!modalImg) return;
     passportState.cropperInstance = new Cropper(modalImg, {
       aspectRatio: 3.5 / 4.5,
       viewMode: 1,
@@ -111,38 +129,50 @@ function openPassportCropperModal() {
     });
   }, 200);
 
-  const saveBtn = document.getElementById('btn-save-crop');
-  const onSave = async () => {
-    if (!passportState.cropperInstance || !passportState.pendingFile) return;
-
-    const croppedCanvas = passportState.cropperInstance.getCroppedCanvas({
-      width: 413,
-      height: 531
-    });
-
-    const perRow = parseInt(document.getElementById('passport-photos-per-row').value, 10) || 6;
-
-    const newCand = {
-      id: passportState.pendingFile.id,
-      name: passportState.pendingFile.name,
-      croppedCanvas: croppedCanvas,
-      aiCutoutImage: null,
-      processedDataUrl: null,
-      photoCount: perRow
+  // Wire Cancel Button
+  if (cancelBtn) {
+    cancelBtn.onclick = () => {
+      closePassportCropperModal();
+      if (saveBtn) saveBtn.onclick = null;
+      cancelBtn.onclick = null;
     };
+  }
 
-    passportState.candidates.push(newCand);
-    passportState.pendingFile = null;
-    closeCropModal();
+  // Wire Confirm Crop Button
+  if (saveBtn) {
+    saveBtn.onclick = async () => {
+      if (!passportState.cropperInstance || !passportState.pendingFile) return;
 
-    // Auto-Trigger AI HD Remove.bg Background Removal
-    showToast('Auto-removing photo background via AI...', 'info');
-    await performAiRemoveBgForCand(newCand);
+      const croppedCanvas = passportState.cropperInstance.getCroppedCanvas({
+        width: 413,
+        height: 531
+      });
 
-    saveBtn.removeEventListener('click', onSave);
-  };
+      const perRow = parseInt(document.getElementById('passport-photos-per-row').value, 10) || 6;
 
-  saveBtn.onclick = onSave;
+      const newCand = {
+        id: passportState.pendingFile.id,
+        name: passportState.pendingFile.name,
+        croppedCanvas: croppedCanvas,
+        aiCutoutImage: null,
+        processedDataUrl: null,
+        photoCount: perRow
+      };
+
+      // 1. Immediately close modal and destroy cropper so it NEVER gets stuck
+      closePassportCropperModal();
+      saveBtn.onclick = null;
+      if (cancelBtn) cancelBtn.onclick = null;
+
+      // 2. Add candidate and immediately render on sheet
+      passportState.candidates.push(newCand);
+      applyPhotoAdjustmentsAll();
+
+      // 3. Auto-Trigger AI HD Remove.bg Background Removal
+      showToast('Auto-removing photo background via AI...', 'info');
+      await performAiRemoveBgForCand(newCand);
+    };
+  }
 }
 
 // Perform AI Background Removal automatically for candidate
