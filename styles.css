@@ -581,36 +581,89 @@ body {
   pointer-events: none;
 }
 
-/* Print CSS Settings - Essential for standard paper printing */
+/* Print CSS Settings - Strict A4 Portrait (210mm x 297mm) Paper Printing */
+@page {
+  size: A4 portrait;
+  margin: 0mm;
+}
+
 @media print {
+  html, body {
+    width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    max-height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: hidden !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
   body * {
     visibility: hidden;
   }
   
-  .app-header, .control-panel, .preview-toolbar, .toast-container, .modal-overlay {
+  .app-header, 
+  .control-panel, 
+  .preview-toolbar, 
+  .toast-container, 
+  .modal-overlay,
+  .privacy-badge,
+  .nav-tabs {
     display: none !important;
   }
   
   .app-container {
     padding: 0 !important;
     margin: 0 !important;
-    width: 100% !important;
+    width: 210mm !important;
+    height: 297mm !important;
     max-width: none !important;
+    display: block !important;
+  }
+
+  .workspace-grid {
+    display: block !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    grid-template-columns: none !important;
+    gap: 0 !important;
+    min-height: auto !important;
   }
   
   .preview-stage {
+    display: block !important;
     background: transparent !important;
     border: none !important;
     padding: 0 !important;
+    margin: 0 !important;
+    width: 210mm !important;
+    height: 297mm !important;
     min-height: auto !important;
     overflow: visible !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .tab-content {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .tab-content.active {
     display: block !important;
+    width: 210mm !important;
+    height: 297mm !important;
   }
 
-  .paper-sheet, .paper-sheet * {
+  .paper-sheet, 
+  .paper-sheet * {
     visibility: visible !important;
   }
 
@@ -620,31 +673,87 @@ body {
     top: 0 !important;
     margin: 0 !important;
     box-shadow: none !important;
-    transform: scale(1) !important;
+    transform: none !important;
+    background: #ffffff !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   
-  .paper-a4 {
-    width: 100% !important;
-    max-width: 210mm !important;
+  .paper-a4,
+  #passport-paper-preview.paper-a4,
+  #aadhaar-paper-preview.paper-a4,
+  #voter-paper-preview.paper-a4,
+  #composer-paper-preview.paper-a4 {
+    width: 210mm !important;
     height: 297mm !important;
-    padding: 4mm 4mm !important;
+    min-width: 210mm !important;
+    min-height: 297mm !important;
+    max-width: 210mm !important;
+    max-height: 297mm !important;
+    padding: 8mm 10mm !important;
     box-sizing: border-box !important;
+    margin: 0 !important;
+    background: #ffffff !important;
   }
 
-  .paper-4x6 {
-    width: 100% !important;
-    max-width: 101.6mm !important;
+  .paper-4x6,
+  #passport-paper-preview.paper-4x6 {
+    width: 101.6mm !important;
     height: 152.4mm !important;
-    padding: 3mm 3mm !important;
+    min-width: 101.6mm !important;
+    min-height: 152.4mm !important;
+    padding: 4mm 5mm !important;
     box-sizing: border-box !important;
+    margin: 0 !important;
+    background: #ffffff !important;
   }
 
   .paper-grid {
     width: 100% !important;
+    box-sizing: border-box !important;
   }
 
-  @page {
-    size: auto;
-    margin: 0mm;
+  .passport-photo-item {
+    box-sizing: border-box !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .passport-photo-item img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+  }
+
+  .id-card-item {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .id-card-item img {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Receipt Print Support */
+  #receipt-preview-box,
+  #receipt-preview-box * {
+    visibility: visible !important;
+  }
+
+  #receipt-preview-box {
+    position: absolute !important;
+    left: 10mm !important;
+    top: 10mm !important;
+    box-shadow: none !important;
+    border: 1px dashed #000000 !important;
   }
 }
+

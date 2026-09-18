@@ -88,7 +88,23 @@ function fileToDataURL(file) {
   });
 }
 
-// Helper: Print standard document window
+// Helper: Print standard document window with dynamic page size handling
 function triggerPrint() {
+  let printStyle = document.getElementById('dynamic-print-page');
+  if (!printStyle) {
+    printStyle = document.createElement('style');
+    printStyle.id = 'dynamic-print-page';
+    document.head.appendChild(printStyle);
+  }
+
+  const activeTab = document.querySelector('.tab-content.active');
+  const passportPreset = document.getElementById('passport-paper-preset');
+
+  if (activeTab && activeTab.id === 'tab-passport' && passportPreset && passportPreset.value === '4x6') {
+    printStyle.textContent = '@page { size: 101.6mm 152.4mm portrait; margin: 0mm; }';
+  } else {
+    printStyle.textContent = '@page { size: A4 portrait; margin: 0mm; }';
+  }
+
   window.print();
 }
