@@ -305,9 +305,12 @@
             <div class="form-group">
               <label><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--accent-cyan);"></i> AI Background Removal (remove.bg)</label>
               <div style="display:flex; flex-direction:column; gap:0.5rem;">
-                <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
                   <button class="btn-primary" id="btn-ai-remove-bg" style="padding:0.4rem 0.8rem; font-size:0.78rem; flex:1;">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> 1-Click AI Cutout (HD)
+                  </button>
+                  <button class="btn-secondary" id="btn-config-removebg-key" title="Configure Remove.bg API Key for GitHub Pages / Web" style="padding:0.4rem 0.65rem; font-size:0.78rem; white-space:nowrap;">
+                    <i class="fa-solid fa-key"></i> API Key
                   </button>
                 </div>
                 
@@ -664,6 +667,42 @@
       <div class="modal-footer">
         <button class="btn-secondary" id="btn-cancel-custom-preset">Cancel</button>
         <button class="btn-primary" id="btn-save-custom-preset"><i class="fa-solid fa-floppy-disk"></i> Save Format</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Remove.bg API Key Settings Dialog -->
+  <div class="modal-overlay" id="removebg-key-modal">
+    <div class="modal-card" style="max-width:540px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-key" style="color:var(--accent-cyan);"></i> Remove.bg API Key Settings</h3>
+        <button class="btn-icon" id="btn-x-removebg-key" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:1.1rem;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">
+          When hosted on <strong>GitHub Pages</strong> or any static website, your Remove.bg API key is stored <strong>only in your browser's private local storage</strong>.
+        </p>
+        <div style="background:rgba(14,165,233,0.1); border:1px solid rgba(14,165,233,0.3); border-radius:6px; padding:0.6rem 0.75rem; font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem; display:flex; align-items:flex-start; gap:0.5rem;">
+          <i class="fa-solid fa-shield-halved" style="color:var(--accent-cyan); margin-top:2px;"></i>
+          <span><strong>100% Safe:</strong> Your API key is NEVER committed to GitHub or visible to other visitors.</span>
+        </div>
+        <div class="form-group">
+          <label style="font-size:0.8rem; font-weight:600;">Remove.bg API Key</label>
+          <input type="password" id="removebg-api-key-input" class="form-control" placeholder="Paste your Remove.bg API key here" style="letter-spacing:1px; font-family:monospace;">
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.6rem;">
+          <a href="https://www.remove.bg/api" target="_blank" rel="noopener noreferrer" style="font-size:0.75rem; color:var(--accent-cyan); text-decoration:underline;">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Get a free key at remove.bg/api
+          </a>
+          <button type="button" id="btn-toggle-show-key" class="btn-secondary" style="padding:0.25rem 0.6rem; font-size:0.72rem;">Show Key</button>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between;">
+        <button class="btn-secondary" id="btn-clear-removebg-key" style="color:#ef4444; border-color:rgba(239,68,68,0.3);">Clear Key</button>
+        <div style="display:flex; gap:0.5rem;">
+          <button class="btn-secondary" id="btn-close-removebg-key">Cancel</button>
+          <button class="btn-primary" id="btn-save-removebg-key"><i class="fa-solid fa-check"></i> Save Key</button>
+        </div>
       </div>
     </div>
   </div>

@@ -70,6 +70,59 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (printBtn) printBtn.addEventListener('click', triggerPrint);
+
+  // Remove.bg API Key Modal Controls (for GitHub Pages / Web Hosting)
+  const configKeyBtn = document.getElementById('btn-config-removebg-key');
+  if (configKeyBtn) configKeyBtn.addEventListener('click', openRemoveBgKeyModal);
+
+  const closeKeyBtn = document.getElementById('btn-close-removebg-key');
+  if (closeKeyBtn) closeKeyBtn.addEventListener('click', closeRemoveBgKeyModal);
+
+  const xKeyBtn = document.getElementById('btn-x-removebg-key');
+  if (xKeyBtn) xKeyBtn.addEventListener('click', closeRemoveBgKeyModal);
+
+  const saveKeyBtn = document.getElementById('btn-save-removebg-key');
+  if (saveKeyBtn) {
+    saveKeyBtn.addEventListener('click', () => {
+      const keyInput = document.getElementById('removebg-api-key-input');
+      if (keyInput) {
+        const val = keyInput.value.trim();
+        if (val) {
+          localStorage.setItem('REMOVE_BG_API_KEY', val);
+          showToast('Remove.bg API key saved in browser storage!', 'success');
+          closeRemoveBgKeyModal();
+        } else {
+          showToast('Please enter an API key', 'warning');
+        }
+      }
+    });
+  }
+
+  const clearKeyBtn = document.getElementById('btn-clear-removebg-key');
+  if (clearKeyBtn) {
+    clearKeyBtn.addEventListener('click', () => {
+      localStorage.removeItem('REMOVE_BG_API_KEY');
+      const keyInput = document.getElementById('removebg-api-key-input');
+      if (keyInput) keyInput.value = '';
+      showToast('API key removed from browser storage.', 'info');
+    });
+  }
+
+  const toggleShowKeyBtn = document.getElementById('btn-toggle-show-key');
+  if (toggleShowKeyBtn) {
+    toggleShowKeyBtn.addEventListener('click', () => {
+      const keyInput = document.getElementById('removebg-api-key-input');
+      if (keyInput) {
+        if (keyInput.type === 'password') {
+          keyInput.type = 'text';
+          toggleShowKeyBtn.innerText = 'Hide Key';
+        } else {
+          keyInput.type = 'password';
+          toggleShowKeyBtn.innerText = 'Show Key';
+        }
+      }
+    });
+  }
 });
 
 async function handlePassportFileUpload(e) {
@@ -139,6 +192,64 @@ function openPassportCropperModal() {
   saveBtn.onclick = onSave;
 }
 
+// Remove.bg Modal Helpers for GitHub Pages / Web Hosting
+function openRemoveBgKeyModal() {
+  const modal = document.getElementById('removebg-key-modal');
+  const input = document.getElementById('removebg-api-key-input');
+  if (modal) {
+    if (input) {
+      input.value = localStorage.getItem('REMOVE_BG_API_KEY') || '';
+      input.type = 'password';
+    }
+    const toggleBtn = document.getElementById('btn-toggle-show-key');
+    if (toggleBtn) toggleBtn.innerText = 'Show Key';
+    modal.classList.add('active');
+  }
+}
+
+function closeRemoveBgKeyModal() {
+  const modal = document.getElementById('removebg-key-modal');
+  if (modal) modal.classList.remove('active');
+}
+
+function requestApiKeyFromUser() {
+  return new Promise((resolve) => {
+    openRemoveBgKeyModal();
+    const saveBtn = document.getElementById('btn-save-removebg-key');
+    const closeBtn = document.getElementById('btn-close-removebg-key');
+    const xBtn = document.getElementById('btn-x-removebg-key');
+    const input = document.getElementById('removebg-api-key-input');
+
+    function onSave() {
+      const val = input ? input.value.trim() : '';
+      if (val) {
+        localStorage.setItem('REMOVE_BG_API_KEY', val);
+        cleanup();
+        closeRemoveBgKeyModal();
+        resolve(val);
+      } else {
+        showToast('Please enter an API key', 'warning');
+      }
+    }
+
+    function onCancel() {
+      cleanup();
+      closeRemoveBgKeyModal();
+      resolve(null);
+    }
+
+    function cleanup() {
+      if (saveBtn) saveBtn.removeEventListener('click', onSave);
+      if (closeBtn) closeBtn.removeEventListener('click', onCancel);
+      if (xBtn) xBtn.removeEventListener('click', onCancel);
+    }
+
+    if (saveBtn) saveBtn.addEventListener('click', onSave);
+    if (closeBtn) closeBtn.addEventListener('click', onCancel);
+    if (xBtn) xBtn.addEventListener('click', onCancel);
+  });
+}
+
 // Perform AI Background Removal for a specific candidate
 async function performAiRemoveBgForCand(cand) {
   if (!cand || !cand.croppedCanvas) return;
@@ -147,35 +258,97 @@ async function performAiRemoveBgForCand(cand) {
     showToast(`Removing background for ${cand.name}...`, 'info');
 
     const base64Data = cand.croppedCanvas.toDataURL('image/png').split(',')[1];
-    const response = await fetch('/api/removebg', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        image_file_b64: base64Data,
-        size: 'auto'
-      })
-    });
+    let imgBlob = null;
+    let fallbackToClient = false;
 
-    if (!response.ok) {
-      let errMsg = `Error (HTTP ${response.status})`;
-      try {
-        const errJson = await response.json();
-        if (errJson.error) {
-          errMsg = errJson.error;
-        } else if (errJson.errors && errJson.errors[0]) {
-          errMsg = errJson.errors[0].title || errMsg;
-        }
-      } catch (e) {}
-      throw new Error(errMsg);
+    // 1. Try serverless backend route (/api/removebg)
+    try {
+      const response = await fetch('/api/removebg', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          image_file_b64: base64Data,
+          size: 'auto'
+        })
+      });
+
+      if (response.ok) {
+        imgBlob = await response.blob();
+      } else if (response.status === 404 || response.status === 405) {
+        // GitHub Pages or static host does not handle POST on static routes
+        fallbackToClient = true;
+      } else {
+        let errMsg = `Server returned HTTP ${response.status}`;
+        try {
+          const errJson = await response.json();
+          if (errJson.error) errMsg = errJson.error;
+          else if (errJson.errors && errJson.errors[0]) errMsg = errJson.errors[0].title || errMsg;
+        } catch (e) {}
+        throw new Error(errMsg);
+      }
+    } catch (netErr) {
+      if (netErr.message && (netErr.message.includes('404') || netErr.message.includes('405') || netErr.message.includes('Failed to fetch') || netErr.message.includes('NetworkError'))) {
+        fallbackToClient = true;
+      } else if (fallbackToClient) {
+        // already true
+      } else {
+        throw netErr;
+      }
     }
 
-    const blob = await response.blob();
+    // 2. Fallback for GitHub Pages / Static Hosting: Direct call to Remove.bg API
+    if (fallbackToClient) {
+      let apiKey = localStorage.getItem('REMOVE_BG_API_KEY');
+      if (!apiKey || !apiKey.trim()) {
+        apiKey = await requestApiKeyFromUser();
+        if (!apiKey) {
+          showToast('Remove.bg API key required for AI background removal on GitHub Pages. Click "API Key" to enter it.', 'warning');
+          applyPhotoAdjustmentsAll();
+          return;
+        }
+      }
+
+      const formData = new FormData();
+      formData.append('image_file_b64', base64Data);
+      formData.append('size', 'auto');
+
+      const clientResp = await fetch('https://api.remove.bg/v1.0/removebg', {
+        method: 'POST',
+        headers: {
+          'X-Api-Key': apiKey.trim()
+        },
+        body: formData
+      });
+
+      if (!clientResp.ok) {
+        let errMsg = `HTTP ${clientResp.status}`;
+        try {
+          const errJson = await clientResp.json();
+          if (errJson.errors && errJson.errors[0]) {
+            errMsg = errJson.errors[0].title;
+          }
+        } catch (e) {}
+
+        if (clientResp.status === 401 || clientResp.status === 403) {
+          openRemoveBgKeyModal();
+          throw new Error(`Invalid or expired Remove.bg API key (${errMsg}). Click "API Key" to update.`);
+        }
+        throw new Error(errMsg);
+      }
+
+      imgBlob = await clientResp.blob();
+    }
+
+    if (!imgBlob) {
+      throw new Error('No image data received from Remove.bg');
+    }
+
     const transparentDataUrl = await new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => resolve(e.target.result);
-      reader.readAsDataURL(blob);
+      reader.readAsDataURL(imgBlob);
     });
 
     const aiImg = new Image();
