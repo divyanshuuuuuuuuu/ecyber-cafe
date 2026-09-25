@@ -61,7 +61,7 @@ function renderComposerCanvas() {
     const cardItem = document.createElement('div');
     cardItem.className = 'id-card-item with-border';
     cardItem.style.width = '85mm';
-    cardItem.style.height = '60mm';
+    cardItem.style.height = '57mm';
     cardItem.style.position = 'relative';
     cardItem.style.display = 'inline-block';
     cardItem.style.margin = '6px';

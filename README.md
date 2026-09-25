@@ -8,9 +8,9 @@ An all-in-one web-based automation toolkit designed for cyber cafes and digital 
 
 ### 📄 Document & ID Processing Tools
 * **🆔 Aadhaar Card Formatting (`js/aadhaar.js`)**
-  * Auto-alignment, crop, and printable layout generator with Standard Cyber Cafe sizing (85mm x 60mm).
+  * Auto-alignment, crop, and printable layout generator with Standard Cyber Cafe sizing (85mm x 57mm).
 * **🗳️ Voter ID Card Processing (`js/voter.js`)**
-  * Quick formatting, card resizing, and printable document setup with Standard Cyber Cafe sizing (85mm x 60mm).
+  * Quick formatting, card resizing, and printable document setup with Standard Cyber Cafe sizing (85mm x 57mm).
 * **🛂 Passport Photo & Document Formatting (`js/passport.js`)**
   * Standard passport size photo generator (35mm x 45mm), background tools, and grid printing layouts (6, 8, 12 photos).
 

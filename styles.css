@@ -399,8 +399,8 @@ body {
 
 /* ID Card Box styling in paper */
 .id-card-item {
-  width: 85mm; /* Standard Cyber Cafe 85mm x 60mm */
-  height: 60mm;
+  width: 85mm; /* Standard Cyber Cafe 85mm x 57mm */
+  height: 57mm;
   border: 1px dashed #cbd5e1;
   position: relative;
   background: #fff;

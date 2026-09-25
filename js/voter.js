@@ -7,7 +7,8 @@ const voterState = {
   activeCroppingSide: 'front', // 'front' or 'back'
   customPresets: [], // Saved custom card types in localStorage
   defaultPresets: [
-    { id: 'standard-cyber', name: 'Standard Cyber Cafe (85x60mm)', widthMm: 85, heightMm: 60, icon: 'fa-id-card' },
+    { id: 'standard-cyber', name: 'Standard Cyber Cafe (85x57mm)', widthMm: 85, heightMm: 57, icon: 'fa-id-card' },
+    { id: 'extended-85x60', name: 'Extended Card (85x60mm)', widthMm: 85, heightMm: 60, icon: 'fa-id-card' },
     { id: 'pouch-87x60', name: 'Lamination Pouch (87x60mm)', widthMm: 87, heightMm: 60, icon: 'fa-id-card' },
     { id: 'voter-epic', name: 'Voter ID (EPIC Card)', widthMm: 85.6, heightMm: 54, icon: 'fa-address-card' },
     { id: 'pan-card', name: 'PAN Card Format', widthMm: 85.6, heightMm: 54, icon: 'fa-credit-card' },
@@ -397,9 +398,11 @@ function openVoterCropModal(cardId, side) {
     voterState.cropperInstance = null;
   }
 
-  const sizeType = document.getElementById('voter-card-size')?.value || '85x60';
-  let cropAspect = 85 / 60; // 85mm x 60mm Standard Cyber Cafe
-  if (sizeType === '87x60') {
+  const sizeType = document.getElementById('voter-card-size')?.value || '85x57';
+  let cropAspect = 85 / 57; // 85mm x 57mm Standard Cyber Cafe
+  if (sizeType === '85x60') {
+    cropAspect = 85 / 60;
+  } else if (sizeType === '87x60') {
     cropAspect = 87 / 60;
   } else if (sizeType === 'standard') {
     cropAspect = 85.6 / 54;
@@ -432,9 +435,11 @@ function closeVoterCropModal() {
 function saveVoterCropResult() {
   if (!voterState.cropperInstance || !voterState.activeCroppingCardId) return;
 
-  const sizeType = document.getElementById('voter-card-size')?.value || '85x60';
-  let targetW = 1020, targetH = 720; // 85mm x 60mm HD resolution
-  if (sizeType === '87x60') {
+  const sizeType = document.getElementById('voter-card-size')?.value || '85x57';
+  let targetW = 1020, targetH = 684; // 85mm x 57mm HD resolution
+  if (sizeType === '85x60') {
+    targetW = 1020; targetH = 720;
+  } else if (sizeType === '87x60') {
     targetW = 1044; targetH = 720; // 87mm x 60mm HD
   } else if (sizeType === 'standard') {
     targetW = 1027; targetH = 648;
@@ -493,7 +498,7 @@ function renderVoterGrid() {
     return;
   }
 
-  const sizeType = document.getElementById('voter-card-size')?.value || '85x60'; // '85x60', 'standard', '80x54', 'small'
+  const sizeType = document.getElementById('voter-card-size')?.value || '85x57'; // '85x57', '85x60', '87x60', 'standard', '80x54', 'small'
   const layoutType = document.getElementById('voter-layout-type')?.value || 'side-by-side'; // 'side-by-side', 'stacked'
   const showBorder = document.getElementById('voter-show-border')?.checked ?? true;
   const cutLines = document.getElementById('voter-cut-lines')?.checked ?? true;
@@ -502,15 +507,18 @@ function renderVoterGrid() {
   const sizeBadge = document.getElementById('voter-size-badge');
   if (sizeBadge) {
     const sizeSelect = document.getElementById('voter-card-size');
-    const selectedText = sizeSelect && sizeSelect.options[sizeSelect.selectedIndex] ? sizeSelect.options[sizeSelect.selectedIndex].text : 'Standard Cyber Cafe (85mm x 60mm)';
+    const selectedText = sizeSelect && sizeSelect.options[sizeSelect.selectedIndex] ? sizeSelect.options[sizeSelect.selectedIndex].text : 'Standard Cyber Cafe (85mm x 57mm)';
     sizeBadge.innerHTML = `<i class="fa-solid fa-ruler"></i> ${selectedText}`;
   }
 
-  // Calculate width & height for card preset (85mm x 60mm Standard Cyber Cafe default)
-  let cardWidth = '85mm';  // 85mm x 60mm Standard Cyber Cafe
-  let cardHeight = '60mm';
+  // Calculate width & height for card preset (85mm x 57mm Standard Cyber Cafe default)
+  let cardWidth = '85mm';  // 85mm x 57mm Standard Cyber Cafe
+  let cardHeight = '57mm';
 
-  if (sizeType === '85x60') {
+  if (sizeType === '85x57') {
+    cardWidth = '85mm';
+    cardHeight = '57mm';
+  } else if (sizeType === '85x60') {
     cardWidth = '85mm';
     cardHeight = '60mm';
   } else if (sizeType === '87x60') {
@@ -577,7 +585,7 @@ function saveNewCustomPreset() {
 
   const name = nameInput ? nameInput.value.trim() : '';
   const widthMm = wInput ? parseFloat(wInput.value) : 85;
-  const heightMm = hInput ? parseFloat(hInput.value) : 60;
+  const heightMm = hInput ? parseFloat(hInput.value) : 57;
 
   if (!name || isNaN(widthMm) || isNaN(heightMm)) {
     showToast('Please fill in valid name and dimensions', 'warning');
