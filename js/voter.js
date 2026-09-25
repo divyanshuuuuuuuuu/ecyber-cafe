@@ -8,6 +8,7 @@ const voterState = {
   customPresets: [], // Saved custom card types in localStorage
   defaultPresets: [
     { id: 'standard-cyber', name: 'Standard Cyber Cafe (85x60mm)', widthMm: 85, heightMm: 60, icon: 'fa-id-card' },
+    { id: 'pouch-87x60', name: 'Lamination Pouch (87x60mm)', widthMm: 87, heightMm: 60, icon: 'fa-id-card' },
     { id: 'voter-epic', name: 'Voter ID (EPIC Card)', widthMm: 85.6, heightMm: 54, icon: 'fa-address-card' },
     { id: 'pan-card', name: 'PAN Card Format', widthMm: 85.6, heightMm: 54, icon: 'fa-credit-card' },
     { id: 'dl-card', name: 'Driving License (DL)', widthMm: 85.6, heightMm: 54, icon: 'fa-id-badge' },
@@ -398,7 +399,9 @@ function openVoterCropModal(cardId, side) {
 
   const sizeType = document.getElementById('voter-card-size')?.value || '85x60';
   let cropAspect = 85 / 60; // 85mm x 60mm Standard Cyber Cafe
-  if (sizeType === 'standard') {
+  if (sizeType === '87x60') {
+    cropAspect = 87 / 60;
+  } else if (sizeType === 'standard') {
     cropAspect = 85.6 / 54;
   } else if (sizeType === '80x54') {
     cropAspect = 80 / 54;
@@ -431,7 +434,9 @@ function saveVoterCropResult() {
 
   const sizeType = document.getElementById('voter-card-size')?.value || '85x60';
   let targetW = 1020, targetH = 720; // 85mm x 60mm HD resolution
-  if (sizeType === 'standard') {
+  if (sizeType === '87x60') {
+    targetW = 1044; targetH = 720; // 87mm x 60mm HD
+  } else if (sizeType === 'standard') {
     targetW = 1027; targetH = 648;
   } else if (sizeType === '80x54') {
     targetW = 960; targetH = 648;
@@ -507,6 +512,9 @@ function renderVoterGrid() {
 
   if (sizeType === '85x60') {
     cardWidth = '85mm';
+    cardHeight = '60mm';
+  } else if (sizeType === '87x60') {
+    cardWidth = '87mm';
     cardHeight = '60mm';
   } else if (sizeType === 'standard') {
     cardWidth = '85.6mm';

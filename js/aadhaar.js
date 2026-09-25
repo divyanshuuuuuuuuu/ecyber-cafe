@@ -310,6 +310,9 @@ function renderAadhaarGrid() {
   if (cardSizePreset === '85x60') {
     cardWidth = '85mm';
     cardHeight = '60mm';
+  } else if (cardSizePreset === '87x60') {
+    cardWidth = '87mm';
+    cardHeight = '60mm';
   } else if (cardSizePreset === 'standard') {
     cardWidth = '85.6mm'; // 85.6mm x 54mm Full Wallet
     cardHeight = '54mm';
@@ -373,7 +376,9 @@ function openAadhaarCrop(cardId, side) {
 
   const cardSizePreset = document.getElementById('aadhaar-card-size')?.value || '85x60';
   let aspect = 85 / 60; // 85mm x 60mm Cyber Cafe Standard
-  if (cardSizePreset === 'standard') {
+  if (cardSizePreset === '87x60') {
+    aspect = 87 / 60;
+  } else if (cardSizePreset === 'standard') {
     aspect = 85.6 / 54;
   } else if (cardSizePreset === '80x54') {
     aspect = 80 / 54;
@@ -405,7 +410,9 @@ function saveCropResult() {
 
   const cardSizePreset = document.getElementById('aadhaar-card-size')?.value || '85x60';
   let targetW = 1020, targetH = 720; // 85mm x 60mm HD resolution
-  if (cardSizePreset === 'standard') {
+  if (cardSizePreset === '87x60') {
+    targetW = 1044; targetH = 720; // 87mm x 60mm (12 px/mm HD)
+  } else if (cardSizePreset === 'standard') {
     targetW = 1027; targetH = 648;
   } else if (cardSizePreset === '80x54') {
     targetW = 960; targetH = 648;
