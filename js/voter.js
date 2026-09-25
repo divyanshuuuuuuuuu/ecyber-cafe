@@ -7,6 +7,7 @@ const voterState = {
   activeCroppingSide: 'front', // 'front' or 'back'
   customPresets: [], // Saved custom card types in localStorage
   defaultPresets: [
+    { id: 'standard-cyber', name: 'Standard Cyber Cafe (85x60mm)', widthMm: 85, heightMm: 60, icon: 'fa-id-card' },
     { id: 'voter-epic', name: 'Voter ID (EPIC Card)', widthMm: 85.6, heightMm: 54, icon: 'fa-address-card' },
     { id: 'pan-card', name: 'PAN Card Format', widthMm: 85.6, heightMm: 54, icon: 'fa-credit-card' },
     { id: 'dl-card', name: 'Driving License (DL)', widthMm: 85.6, heightMm: 54, icon: 'fa-id-badge' },
@@ -395,9 +396,19 @@ function openVoterCropModal(cardId, side) {
     voterState.cropperInstance = null;
   }
 
+  const sizeType = document.getElementById('voter-card-size')?.value || '85x60';
+  let cropAspect = 85 / 60; // 85mm x 60mm Standard Cyber Cafe
+  if (sizeType === 'standard') {
+    cropAspect = 85.6 / 54;
+  } else if (sizeType === '80x54') {
+    cropAspect = 80 / 54;
+  } else if (sizeType === 'small') {
+    cropAspect = 72 / 48;
+  }
+
   setTimeout(() => {
     voterState.cropperInstance = new Cropper(cropImg, {
-      aspectRatio: 85.6 / 54, // Standard Voter ID Aspect Ratio
+      aspectRatio: cropAspect,
       viewMode: 1,
       autoCropArea: 0.85
     });
@@ -418,7 +429,17 @@ function closeVoterCropModal() {
 function saveVoterCropResult() {
   if (!voterState.cropperInstance || !voterState.activeCroppingCardId) return;
 
-  const canvas = voterState.cropperInstance.getCroppedCanvas({ width: 1012, height: 638 });
+  const sizeType = document.getElementById('voter-card-size')?.value || '85x60';
+  let targetW = 1020, targetH = 720; // 85mm x 60mm HD resolution
+  if (sizeType === 'standard') {
+    targetW = 1027; targetH = 648;
+  } else if (sizeType === '80x54') {
+    targetW = 960; targetH = 648;
+  } else if (sizeType === 'small') {
+    targetW = 864; targetH = 576;
+  }
+
+  const canvas = voterState.cropperInstance.getCroppedCanvas({ width: targetW, height: targetH });
   if (canvas) {
     const croppedDataUrl = canvas.toDataURL('image/png');
     const card = voterState.cards.find(c => c.id === voterState.activeCroppingCardId);
@@ -467,21 +488,35 @@ function renderVoterGrid() {
     return;
   }
 
-  const sizeType = document.getElementById('voter-card-size').value; // '80x54', 'standard', 'small', 'custom'
-  const layoutType = document.getElementById('voter-layout-type').value; // 'side-by-side', 'stacked'
-  const showBorder = document.getElementById('voter-show-border').checked;
-  const cutLines = document.getElementById('voter-cut-lines').checked;
+  const sizeType = document.getElementById('voter-card-size')?.value || '85x60'; // '85x60', 'standard', '80x54', 'small'
+  const layoutType = document.getElementById('voter-layout-type')?.value || 'side-by-side'; // 'side-by-side', 'stacked'
+  const showBorder = document.getElementById('voter-show-border')?.checked ?? true;
+  const cutLines = document.getElementById('voter-cut-lines')?.checked ?? true;
 
-  // Calculate width & height in px for 300DPI equivalent on A4 preview sheet
-  let cardWidth = '324px'; // 85.6mm equivalent on preview
-  let cardHeight = '204px'; // 54mm equivalent on preview
+  // Update preview toolbar size indicator badge
+  const sizeBadge = document.getElementById('voter-size-badge');
+  if (sizeBadge) {
+    const sizeSelect = document.getElementById('voter-card-size');
+    const selectedText = sizeSelect && sizeSelect.options[sizeSelect.selectedIndex] ? sizeSelect.options[sizeSelect.selectedIndex].text : 'Standard Cyber Cafe (85mm x 60mm)';
+    sizeBadge.innerHTML = `<i class="fa-solid fa-ruler"></i> ${selectedText}`;
+  }
 
-  if (sizeType === '80x54') {
-    cardWidth = '302px'; // 80mm
-    cardHeight = '204px'; // 54mm
+  // Calculate width & height for card preset (85mm x 60mm Standard Cyber Cafe default)
+  let cardWidth = '85mm';  // 85mm x 60mm Standard Cyber Cafe
+  let cardHeight = '60mm';
+
+  if (sizeType === '85x60') {
+    cardWidth = '85mm';
+    cardHeight = '60mm';
+  } else if (sizeType === 'standard') {
+    cardWidth = '85.6mm';
+    cardHeight = '54mm';
+  } else if (sizeType === '80x54') {
+    cardWidth = '80mm';
+    cardHeight = '54mm';
   } else if (sizeType === 'small') {
-    cardWidth = '272px'; // 72mm
-    cardHeight = '181px'; // 48mm
+    cardWidth = '72mm';
+    cardHeight = '48mm';
   }
 
   voterState.cards.forEach(card => {
@@ -506,7 +541,7 @@ function renderVoterGrid() {
       frontBox.style.background = '#fff';
       frontBox.style.overflow = 'hidden';
 
-      frontBox.innerHTML = `<img src="${card.frontImgData}" alt="Voter Front" style="width:100%; height:100%; object-fit:cover; filter:${filterCss};">`;
+      frontBox.innerHTML = `<img src="${card.frontImgData}" alt="Voter Front" style="width:100%; height:100%; object-fit:fill; filter:${filterCss};">`;
 
       // Back Image Element
       const backBox = document.createElement('div');
@@ -516,7 +551,7 @@ function renderVoterGrid() {
       backBox.style.background = '#fff';
       backBox.style.overflow = 'hidden';
 
-      backBox.innerHTML = `<img src="${card.backImgData}" alt="Voter Back" style="width:100%; height:100%; object-fit:cover; filter:${filterCss};">`;
+      backBox.innerHTML = `<img src="${card.backImgData}" alt="Voter Back" style="width:100%; height:100%; object-fit:fill; filter:${filterCss};">`;
 
       cardPairContainer.appendChild(frontBox);
       cardPairContainer.appendChild(backBox);
@@ -533,8 +568,8 @@ function saveNewCustomPreset() {
   const hInput = document.getElementById('custom-preset-height');
 
   const name = nameInput ? nameInput.value.trim() : '';
-  const widthMm = wInput ? parseFloat(wInput.value) : 85.6;
-  const heightMm = hInput ? parseFloat(hInput.value) : 54;
+  const widthMm = wInput ? parseFloat(wInput.value) : 85;
+  const heightMm = hInput ? parseFloat(hInput.value) : 60;
 
   if (!name || isNaN(widthMm) || isNaN(heightMm)) {
     showToast('Please fill in valid name and dimensions', 'warning');

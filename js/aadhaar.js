@@ -295,16 +295,30 @@ function renderAadhaarGrid() {
   gridContainer.style.gap = '4px';
   const borderClass = showBorder ? 'with-border' : '';
 
-  // Determine card pixel dimensions based on size preset (80mm x 54mm standard)
-  let cardWidth = '295px';  // 80mm x 54mm
-  let cardHeight = '199px';
+  // Update preview toolbar size indicator badge
+  const sizeBadge = document.getElementById('aadhaar-size-badge');
+  if (sizeBadge) {
+    const sizeSelect = document.getElementById('aadhaar-card-size');
+    const selectedText = sizeSelect && sizeSelect.options[sizeSelect.selectedIndex] ? sizeSelect.options[sizeSelect.selectedIndex].text : 'Standard Cyber Cafe (85mm x 60mm)';
+    sizeBadge.innerHTML = `<i class="fa-solid fa-ruler"></i> ${selectedText}`;
+  }
 
-  if (cardSizePreset === 'small') {
-    cardWidth = '265px';   // 72mm x 48mm Compact
-    cardHeight = '178px';
+  // Determine card dimensions based on size preset (85mm x 60mm standard cyber cafe)
+  let cardWidth = '85mm';  // 85mm x 60mm Standard Cyber Cafe
+  let cardHeight = '60mm';
+
+  if (cardSizePreset === '85x60') {
+    cardWidth = '85mm';
+    cardHeight = '60mm';
   } else if (cardSizePreset === 'standard') {
-    cardWidth = '315px';   // 85.6mm x 54mm Full Wallet
-    cardHeight = '198px';
+    cardWidth = '85.6mm'; // 85.6mm x 54mm Full Wallet
+    cardHeight = '54mm';
+  } else if (cardSizePreset === 'small') {
+    cardWidth = '72mm';   // 72mm x 48mm Compact
+    cardHeight = '48mm';
+  } else if (cardSizePreset === '80x54') {
+    cardWidth = '80mm';   // 80mm x 54mm Classic Mini
+    cardHeight = '54mm';
   }
 
   aadhaarState.cards.forEach((card) => {
@@ -357,9 +371,19 @@ function openAadhaarCrop(cardId, side) {
 
   if (aadhaarState.cropperInstance) aadhaarState.cropperInstance.destroy();
 
+  const cardSizePreset = document.getElementById('aadhaar-card-size')?.value || '85x60';
+  let aspect = 85 / 60; // 85mm x 60mm Cyber Cafe Standard
+  if (cardSizePreset === 'standard') {
+    aspect = 85.6 / 54;
+  } else if (cardSizePreset === '80x54') {
+    aspect = 80 / 54;
+  } else if (cardSizePreset === 'small') {
+    aspect = 72 / 48;
+  }
+
   setTimeout(() => {
     aadhaarState.cropperInstance = new Cropper(modalImg, {
-      aspectRatio: 80 / 54, // 80mm x 54mm Cyber Cafe Standard
+      aspectRatio: aspect,
       viewMode: 1,
       autoCropArea: 0.4
     });
@@ -379,7 +403,17 @@ function closeCropModal() {
 function saveCropResult() {
   if (!aadhaarState.cropperInstance || !aadhaarState.activeCroppingCardId) return;
 
-  const canvas = aadhaarState.cropperInstance.getCroppedCanvas({ width: 1012, height: 638 });
+  const cardSizePreset = document.getElementById('aadhaar-card-size')?.value || '85x60';
+  let targetW = 1020, targetH = 720; // 85mm x 60mm HD resolution
+  if (cardSizePreset === 'standard') {
+    targetW = 1027; targetH = 648;
+  } else if (cardSizePreset === '80x54') {
+    targetW = 960; targetH = 648;
+  } else if (cardSizePreset === 'small') {
+    targetW = 864; targetH = 576;
+  }
+
+  const canvas = aadhaarState.cropperInstance.getCroppedCanvas({ width: targetW, height: targetH });
   const croppedDataUrl = canvas.toDataURL('image/png');
 
   const card = aadhaarState.cards.find(c => c.id === aadhaarState.activeCroppingCardId);

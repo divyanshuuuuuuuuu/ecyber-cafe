@@ -60,8 +60,8 @@ function renderComposerCanvas() {
     // 1. Add Card Box to A4 Sheet Preview
     const cardItem = document.createElement('div');
     cardItem.className = 'id-card-item with-border';
-    cardItem.style.width = '324px';
-    cardItem.style.height = '204px';
+    cardItem.style.width = '85mm';
+    cardItem.style.height = '60mm';
     cardItem.style.position = 'relative';
     cardItem.style.display = 'inline-block';
     cardItem.style.margin = '6px';
